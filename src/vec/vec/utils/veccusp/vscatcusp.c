@@ -1,7 +1,7 @@
 #include <petsc-private/isimpl.h>
 #include <petsc-private/vecimpl.h>             /*I "petscvec.h" I*/
 
-PETSC_INTERN PetscErrorCode VecScatterCUSPIndicesCreate_PtoP(PetscInt, PetscInt*,PetscInt, PetscInt*,PetscCUSPIndices*);
+PETSC_INTERN PetscErrorCode VecScatterCUSPIndicesCreate_PtoP(PetscInt,PetscInt*,PetscInt,PetscInt*,PetscCUSPIndices*);
 
 #undef __FUNCT__
 #define __FUNCT__ "VecScatterInitializeForGPU"
@@ -33,6 +33,11 @@ PetscErrorCode  VecScatterInitializeForGPU(VecScatter inctx,Vec x,ScatterMode mo
   PetscInt               i,*indices,*sstartsSends,*sstartsRecvs,nrecvs,nsends,bs;
 
   PetscFunctionBegin;
+  ierr = VecScatterIsSequential_Private((VecScatter_MPI_General*)inctx->fromdata,&isSeq1);CHKERRQ(ierr);
+  ierr = VecScatterIsSequential_Private((VecScatter_MPI_General*)inctx->todata,&isSeq2);CHKERRQ(ierr);
+  if (isSeq1 || isSeq2) {
+    PetscFunctionReturn(0);
+  }
   if (mode & SCATTER_REVERSE) {
     to     = (VecScatter_MPI_General*)inctx->fromdata;
     from   = (VecScatter_MPI_General*)inctx->todata;
