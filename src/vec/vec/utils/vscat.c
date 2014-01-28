@@ -1947,7 +1947,7 @@ PetscErrorCode  VecScatterRemap(VecScatter scat,PetscInt *rto,PetscInt *rfrom)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "VecScatterIsSequential"
+#define __FUNCT__ "VecScatterIsSequential_Private"
 /*
   Returns true if the scatter is sequential.
 */
