@@ -266,8 +266,19 @@ typedef struct {
 
 PETSC_INTERN PetscErrorCode VecScatterIsSequential_Private(VecScatter_Common*,PetscBool*);
 
+typedef struct _VecScatterOps *VecScatterOps;
+struct _VecScatterOps {
+  PetscErrorCode (*begin)(VecScatter,Vec,Vec,InsertMode,ScatterMode);
+  PetscErrorCode (*end)(VecScatter,Vec,Vec,InsertMode,ScatterMode);
+  PetscErrorCode (*copy)(VecScatter,VecScatter *);
+  PetscErrorCode (*view)(VecScatter,PetscViewer);
+  PetscErrorCode (*viewfromoptions)(VecScatter,const char prefix[],const char name[]); 
+  PetscErrorCode (*remap)(VecScatter,PetscInt *,PetscInt*);
+  PetscErrorCode (*getmerged)(VecScatter,PetscBool *);
+};
+
 struct _p_VecScatter {
-  PETSCHEADER(int);
+  PETSCHEADER(struct _VecScatterOps);
   PetscInt       to_n,from_n;
   PetscBool      inuse;                /* prevents corruption from mixing two scatters */
   PetscBool      beginandendtogether;  /* indicates that the scatter begin and end  function are called together, VecScatterEnd()
