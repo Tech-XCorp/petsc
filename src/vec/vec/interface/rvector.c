@@ -21,7 +21,7 @@ PETSC_EXTERN PetscErrorCode VecValidValues(Vec vec,PetscInt argnum,PetscBool beg
 
   PetscFunctionBegin;
 #if defined(PETSC_HAVE_CUSP)
-  if ((vec->petscnative || vec->ops->getarray) && vec->valid_GPU_array != PETSC_CUSP_GPU) {
+  if ((vec->petscnative || vec->ops->getarray) && (vec->valid_GPU_array == PETSC_CUSP_CPU || vec->valid_GPU_array == PETSC_CUSP_BOTH)) {
 #else
   if (vec->petscnative || vec->ops->getarray) {
 #endif
@@ -1568,9 +1568,10 @@ PetscErrorCode VecGetArray(Vec x,PetscScalar **a)
   PetscValidHeaderSpecific(x,VEC_CLASSID,1);
   if (x->petscnative) {
 #if defined(PETSC_HAVE_CUSP)
-    ierr = VecCUSPAllocateCheckHost(x);CHKERRQ(ierr);
     if (x->valid_GPU_array == PETSC_CUSP_GPU) {
       ierr = VecCUSPCopyFromGPU(x);CHKERRQ(ierr);
+    } else if (x->valid_GPU_array == PETSC_CUSP_UNALLOCATED) {
+      ierr = VecCUSPAllocateCheckHost(x); CHKERRQ(ierr);
     }
 #endif
 #if defined(PETSC_HAVE_VIENNACL)
@@ -1578,7 +1579,7 @@ PetscErrorCode VecGetArray(Vec x,PetscScalar **a)
       ierr = VecViennaCLCopyFromGPU(x);CHKERRQ(ierr);
     }
 #endif
-    *a = *((PetscScalar **)x->data);
+    *a = *((PetscScalar**)x->data);
   } else {
     ierr = (*x->ops->getarray)(x,a);CHKERRQ(ierr);
   }

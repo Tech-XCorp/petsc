@@ -27,14 +27,17 @@ PetscErrorCode VecCUSPAllocateCheckHost(Vec v)
 
   PetscFunctionBegin;
   if (!s) {
-    ierr = PetscNew(&s);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)v,sizeof(*s));CHKERRQ(ierr);
+    ierr = PetscNewLog((PetscObject)v,&s);CHKERRQ(ierr);
+    v->data = s;
   }
   if (!s->array) {
     ierr               = PetscMalloc1(n,&array);CHKERRQ(ierr);
     ierr               = PetscLogObjectMemory((PetscObject)v,n*sizeof(PetscScalar));CHKERRQ(ierr);
     s->array           = array;
     s->array_allocated = array;
+    if (v->valid_GPU_array == PETSC_CUSP_UNALLOCATED) {
+      v->valid_GPU_array = PETSC_CUSP_CPU;
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -64,6 +67,13 @@ PetscErrorCode VecCUSPAllocateCheck(Vec v)
       veccusp->stream = stream;
       veccusp->hostDataRegisteredAsPageLocked = PETSC_FALSE;
       v->ops->destroy = VecDestroy_SeqCUSP;
+      if (v->valid_GPU_array == PETSC_CUSP_UNALLOCATED) {
+        if (v->data && ((Vec_Seq*)v->data)->array) {
+          v->valid_GPU_array = PETSC_CUSP_CPU;
+        } else {
+          v->valid_GPU_array = PETSC_CUSP_GPU;
+        }
+      }
     } catch(char *ex) {
       SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"CUSP error: %s", ex);
     }
@@ -89,7 +99,7 @@ PetscErrorCode VecCUSPCopyToGPU(Vec v)
     try {
       veccusp=(Vec_CUSP*)v->spptr;
       varray=veccusp->GPUarray;
-      err = cudaMemcpy(varray->data().get(),*(PetscScalar**)v->data,v->map->n*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRCUSP(err);
+      err = cudaMemcpy(varray->data().get(),((Vec_Seq*)v->data)->array,v->map->n*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRCUSP(err);
     } catch(char *ex) {
       SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"CUSP error: %s", ex);
     }
@@ -151,8 +161,7 @@ PetscErrorCode VecCUSPCopyFromGPU(Vec v)
     try {
       veccusp=(Vec_CUSP*)v->spptr;
       varray=veccusp->GPUarray;
-
-      err = cudaMemcpy(*(PetscScalar**)v->data,varray->data().get(),v->map->n*sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRCUSP(err);
+      err = cudaMemcpy(((Vec_Seq*)v->data)->array,varray->data().get(),v->map->n*sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRCUSP(err);
     } catch(char *ex) {
       SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"CUSP error: %s", ex);
     }
@@ -247,8 +256,10 @@ static PetscErrorCode VecDestroy_SeqCUSP_Private(Vec v)
 #if defined(PETSC_USE_LOG)
   PetscLogObjectState((PetscObject)v,"Length=%D",v->map->n);
 #endif
-  if (vs->array_allocated) ierr = PetscFree(vs->array_allocated);CHKERRQ(ierr);
-  ierr = PetscFree(vs);CHKERRQ(ierr);
+  if (vs) {
+    if (vs->array_allocated) ierr = PetscFree(vs->array_allocated);CHKERRQ(ierr);
+    ierr = PetscFree(vs);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -1853,8 +1864,13 @@ PetscErrorCode VecGetLocalVector_SeqCUSP(Vec v,Vec *w)
   ierr = PetscStrcmp(t,VECSEQCUSP,&flg);CHKERRQ(ierr);
   if (!flg) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Vector of type %s passed to argument #2. Should be %s.\n",t,VECSEQCUSP);
   
-  if ((*w)->data) PetscFree((*w)->data);
-  if ((Vec_CUSP*)(*w)->spptr) {
+  if ((*w)->data) {
+    if (((Vec_Seq*)(*w)->data)->array_allocated) PetscFree(((Vec_Seq*)(*w)->data)->array_allocated);
+    ((Vec_Seq*)(*w)->data)->array = 0;
+    ((Vec_Seq*)(*w)->data)->array_allocated = 0;
+    ((Vec_Seq*)(*w)->data)->unplacedarray = 0;
+  }
+  if ((*w)->spptr) {
     if (((Vec_CUSP*)(*w)->spptr)->GPUarray) delete ((Vec_CUSP*)(*w)->spptr)->GPUarray;
     err = cudaStreamDestroy(((Vec_CUSP*)(*w)->spptr)->stream);CHKERRCUSP(err);
     delete (Vec_CUSP*)(*w)->spptr;
@@ -1865,12 +1881,9 @@ PetscErrorCode VecGetLocalVector_SeqCUSP(Vec v,Vec *w)
     (*w)->data = v->data;
     (*w)->valid_GPU_array = v->valid_GPU_array;
     (*w)->spptr = v->spptr;
-<<<<<<< HEAD
-=======
     ierr = PetscObjectStateIncrease((PetscObject)*w);CHKERRQ(ierr);
->>>>>>> 64a0e5d... Add memory logging, remove debug statements.
   } else {
-    ierr = VecGetArray(v,(PetscScalar**)(*w)->data);CHKERRQ(ierr);
+    ierr = VecGetArray(v,&((Vec_Seq*)(*w)->data)->array);CHKERRQ(ierr);
     (*w)->valid_GPU_array = PETSC_CUSP_CPU;
     ierr = VecCUSPAllocateCheck(*w);CHKERRQ(ierr);
   }
@@ -1894,17 +1907,17 @@ PetscErrorCode VecRestoreLocalVector_SeqCUSP(Vec v,Vec *w)
   ierr = PetscStrcmp(t,VECSEQCUSP,&flg);CHKERRQ(ierr);
   if (!flg) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Vector of type %s passed to argument #2. Should be %s.\n",t,VECSEQCUSP);
 
-  v->valid_GPU_array = (*w)->valid_GPU_array;
-<<<<<<< HEAD
-=======
-  ierr = VecCUSPCopyFromGPU(v);CHKERRQ(ierr);
->>>>>>> 64a0e5d... Add memory logging, remove debug statements.
   if (v->petscnative) {
+    v->data = (*w)->data;
+    v->valid_GPU_array = (*w)->valid_GPU_array;
+    v->spptr = (*w)->spptr;
+    ierr = VecCUSPCopyFromGPU(v);CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease((PetscObject)v);CHKERRQ(ierr);
     (*w)->data = 0;
     (*w)->valid_GPU_array = PETSC_CUSP_UNALLOCATED;
     (*w)->spptr = 0;
   } else {
-    ierr = VecRestoreArray(v,(PetscScalar**)(*w)->data);CHKERRQ(ierr);
+    ierr = VecRestoreArray(v,&((Vec_Seq*)(*w)->data)->array);CHKERRQ(ierr);
     if ((Vec_CUSP*)(*w)->spptr) {
       delete ((Vec_CUSP*)(*w)->spptr)->GPUarray;
       err = cudaStreamDestroy(((Vec_CUSP*)(*w)->spptr)->stream);CHKERRCUSP(err);
