@@ -31,6 +31,7 @@ PetscErrorCode  VecScatterInitializeForGPU(VecScatter inctx,Vec x,ScatterMode mo
   VecScatter_MPI_General *to,*from;
   PetscErrorCode         ierr;
   PetscInt               i,*indices,*sstartsSends,*sstartsRecvs,nrecvs,nsends,bs;
+  PetscBool              isSeq1,isSeq2;
 
   PetscFunctionBegin;
   ierr = VecScatterIsSequential_Private((VecScatter_Common*)inctx->fromdata,&isSeq1);CHKERRQ(ierr);
