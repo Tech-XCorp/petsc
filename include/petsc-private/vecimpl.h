@@ -270,7 +270,8 @@ typedef struct _VecScatterOps *VecScatterOps;
 struct _VecScatterOps {
   PetscErrorCode (*begin)(VecScatter,Vec,Vec,InsertMode,ScatterMode);
   PetscErrorCode (*end)(VecScatter,Vec,Vec,InsertMode,ScatterMode);
-  PetscErrorCode (*copy)(VecScatter,VecScatter *);
+  PetscErrorCode (*copy)(VecScatter,VecScatter);
+  PetscErrorCode (*destroy)(VecScatter);
   PetscErrorCode (*view)(VecScatter,PetscViewer);
   PetscErrorCode (*viewfromoptions)(VecScatter,const char prefix[],const char name[]); 
   PetscErrorCode (*remap)(VecScatter,PetscInt *,PetscInt*);
@@ -285,11 +286,6 @@ struct _p_VecScatter {
                                           is then treated as a nop */
   PetscBool      packtogether;         /* packs all the messages before sending, same with receive */
   PetscBool      reproduce;            /* always receive the ghost points in the same order of processes */
-  PetscErrorCode (*begin)(VecScatter,Vec,Vec,InsertMode,ScatterMode);
-  PetscErrorCode (*end)(VecScatter,Vec,Vec,InsertMode,ScatterMode);
-  PetscErrorCode (*copy)(VecScatter,VecScatter);
-  PetscErrorCode (*destroy)(VecScatter);
-  PetscErrorCode (*view)(VecScatter,PetscViewer);
   void           *fromdata,*todata;
   void           *spptr;
 };
