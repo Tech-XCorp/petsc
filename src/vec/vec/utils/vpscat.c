@@ -2719,16 +2719,16 @@ PetscErrorCode VecScatterCreateCommon_PtoS(VecScatter_MPI_General *from,VecScatt
     ctx->ops->end   = VecScatterEnd_12;
     break;
   case 11:
-    ctx->begin = VecScatterBegin_11;
-    ctx->end   = VecScatterEnd_11;
+    ctx->ops->begin = VecScatterBegin_11;
+    ctx->ops->end   = VecScatterEnd_11;
     break;
   case 10:
-    ctx->begin = VecScatterBegin_10;
-    ctx->end   = VecScatterEnd_10;
+    ctx->ops->begin = VecScatterBegin_10;
+    ctx->ops->end   = VecScatterEnd_10;
     break;
   case 9:
-    ctx->begin = VecScatterBegin_9;
-    ctx->end   = VecScatterEnd_9;
+    ctx->ops->begin = VecScatterBegin_9;
+    ctx->ops->end   = VecScatterEnd_9;
     break;
   case 8:
     ctx->ops->begin = VecScatterBegin_8;
@@ -2763,8 +2763,8 @@ PetscErrorCode VecScatterCreateCommon_PtoS(VecScatter_MPI_General *from,VecScatt
     ctx->ops->end   = VecScatterEnd_1;
     break;
   default:
-    ctx->begin = VecScatterBegin_bs;
-    ctx->end   = VecScatterEnd_bs;
+    ctx->ops->begin = VecScatterBegin_bs;
+    ctx->ops->end   = VecScatterEnd_bs;
 
   }
   ctx->ops->view = VecScatterView_MPI;
