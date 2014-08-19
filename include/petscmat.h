@@ -117,6 +117,7 @@ J*/
 #define MATSOLVERELEMENTAL    "elemental"
 #define MATSOLVERCLIQUE       "clique"
 #define MATSOLVERKLU          "klu"
+#define MATSOLVERGELUS        "gelus"
 
 /*E
     MatFactorType - indicates what type of factorization is requested
@@ -1628,10 +1629,18 @@ PETSC_EXTERN PetscErrorCode MatMkl_PardisoSetCntl(Mat,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode MatSuperluSetILUDropTol(Mat,PetscReal);
 #endif
 
+#ifdef PETSC_HAVE_GELUS
+
+typedef enum {MAT_GELUS_CSR, MAT_GELUS_ELL, MAT_GELUS_HYB} MatGELUSStorageFormat;
+
+/* these will be strings associated with enumerated type defined above */
+PETSC_EXTERN const char *const MatGELUSStorageFormats[];
+
+#endif
+
 #ifdef PETSC_HAVE_CUDA
 /*E
-    MatCUSPARSEStorageFormat - indicates the storage format for CUSPARSE (GPU)
-    matrices. 
+    MatCUSPARSEStorageFormat - indicates the storage format for CUSPARSE solvers.
 
     Not Collective
 

@@ -145,6 +145,7 @@
 #define MATSOLVERCUSPARSE     'cusparse'
 #define MATSOLVERBSTRM        'bstrm'
 #define MATSOLVERSBSTRM       'sbstrm'
+#define MATSOLVERGELUS        'gelus'
 
 !
 ! GPU Storage Formats for CUSP and CUSPARSE
