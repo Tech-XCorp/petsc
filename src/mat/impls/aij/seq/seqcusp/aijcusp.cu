@@ -577,6 +577,10 @@ extern PetscErrorCode MatSetValuesBatch_SeqAIJCUSP(Mat, PetscInt, PetscInt, Pets
 
 PETSC_EXTERN PetscErrorCode MatGetFactor_seqaij_cusparse(Mat,MatFactorType,Mat*);
 PETSC_EXTERN PetscErrorCode MatFactorGetSolverPackage_seqaij_cusparse(Mat,const MatSolverPackage*);
+#if defined(PETSC_HAVE_GELUS)
+PETSC_EXTERN PetscErrorCode MatFactorGetSolverPackage_seqaij_gelus(Mat,const MatSolverPackage*);
+PETSC_EXTERN PetscErrorCode MatGetFactor_seqaij_gelus(Mat,MatFactorType,Mat*);
+#endif
 
 #undef __FUNCT__
 #define __FUNCT__ "MatCreate_SeqAIJCUSP"
@@ -613,6 +617,9 @@ PETSC_EXTERN PetscErrorCode MatCreate_SeqAIJCUSP(Mat B)
      Note the difference with the implementation in MatCreate_SeqAIJCUSPARSE in ../seqcusparse/aijcusparse.cu */
   ierr = PetscObjectComposeFunction((PetscObject)B,"MatGetFactor_cusparse_C",MatGetFactor_seqaij_cusparse);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)B,"MatCUSPSetFormat_C", MatCUSPSetFormat_SeqAIJCUSP);CHKERRQ(ierr);
+#if defined(PETSC_HAVE_GELUS)
+  ierr = PetscObjectComposeFunction((PetscObject)B,"MatGetFactor_gelus_C",MatGetFactor_seqaij_gelus);CHKERRQ(ierr);
+#endif
   ierr = PetscObjectChangeTypeName((PetscObject)B,MATSEQAIJCUSP);CHKERRQ(ierr);
 
   B->valid_GPU_matrix = PETSC_CUSP_UNALLOCATED;
