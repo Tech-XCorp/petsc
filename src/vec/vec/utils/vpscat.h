@@ -38,7 +38,7 @@ PetscErrorCode PETSCMAP1(VecScatterBegin)(VecScatter ctx,Vec xin,Vec yin,InsertM
   indices = to->indices;
   sstarts = to->starts;
 #if defined(PETSC_HAVE_CUSP)
-
+  VecCUSPAllocateCheckHost(xin);
   if (xin->valid_GPU_array == PETSC_CUSP_GPU) {
     if (xin->spptr && ctx->spptr) {
       ierr = VecCUSPCopyFromGPUSome_Public(xin,(PetscCUSPIndices)ctx->spptr);CHKERRQ(ierr);
