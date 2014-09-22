@@ -94,6 +94,7 @@ PETSC_EXTERN PetscErrorCode MatGetFactor_seqaij_gelus(Mat A,MatFactorType ftype,
   factorData->nnz                = 0;
   ((Mat)*B)->spptr               = factorData;
   ((Mat)*B)->ops->destroy        = MatDestroy_GELUS;
+  ((Mat)*B)->ops->setfromoptions = MatSetFromOptions_GELUS;
 
   if (ftype == MAT_FACTOR_LU || ftype == MAT_FACTOR_ILU || ftype == MAT_FACTOR_ILUDT) {
     ierr = MatSetBlockSizes(*B,A->rmap->bs,A->cmap->bs);CHKERRQ(ierr);
