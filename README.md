@@ -2,7 +2,7 @@ PETSc with Tech-X's GPU improvements
 ------------------------------------
 
 This repository makes available several patches for GPU functionality in
-the [PETSc library](www.mcs.anl.gov/petsc/).  The main PETSc repository
+the [PETSc library](http://www.mcs.anl.gov/petsc/).  The main PETSc repository
 is at [https://bitbucket.org/petsc/petsc](https://bitbucket.org/petsc/petsc).
 
 The branch gpu-master was created off a fairly recent version of PETSc's
@@ -17,7 +17,7 @@ Important information:
 
 - The patches contained in this branch are for early adopters.  They
   have not yet undergone rigorous review and testing.  
-- *Never* create a branch off of gpu-master with the intend of creating
+- *Never* create a branch off of gpu-master with the intent of creating
   a patch for PETSc.  The gpu-master branch contains experimental code
   which may not be suitable for inclusion in petsc/master.  It will be
   frequently rebased to keep up with changes in petsc/master.  It should
