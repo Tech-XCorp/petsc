@@ -18,8 +18,8 @@ class Configure(config.package.Package):
 
   def setupDependencies(self, framework):
     config.package.Package.setupDependencies(self, framework)
-    self.cuda = framework.require('PETSc.packages.cuda', self)
-    self.openmp = framework.require('PETSc.packages.openmp', self)
+    self.cuda = framework.require('config.packages.cuda', self)
+    self.openmp = framework.require('config.packages.openmp', self)
     self.deps = [self.cuda, self.openmp]
     return
 
