@@ -2,6 +2,9 @@
 #define __CUSPARSEMATIMPL
 
 #include <../src/vec/vec/impls/seq/seqcusp/cuspvecimpl.h>
+#if defined(PETSC_HAVE_GELUS)
+#include <../src/mat/impls/aij/seq/gelus/gelus.h>
+#endif
 
 #if CUDA_VERSION>=4020
 #include <cusparse_v2.h>
@@ -56,8 +59,17 @@ PetscScalar BETA  = 0.0;
 #endif
 #endif
 
+#if defined(THRUSTINTARRAY32)
+#undef THRUSTINTARRAY32
+#endif
 #define THRUSTINTARRAY32 thrust::device_vector<int>
+#if defined(THRUSTINTARRAY)
+#undef THRUSTINTARRAY
+#endif
 #define THRUSTINTARRAY thrust::device_vector<PetscInt>
+#if defined(THRUSTARRAY)
+#undef THRUSTARRAY
+#endif
 #define THRUSTARRAY thrust::device_vector<PetscScalar>
 
 /* A CSR matrix structure */

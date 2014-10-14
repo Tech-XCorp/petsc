@@ -13,6 +13,11 @@
 
 const char *const MatCUSPARSEStorageFormats[] = {"CSR","ELL","HYB","MatCUSPARSEStorageFormat","MAT_CUSPARSE_",0};
 
+#if defined(PETSC_HAVE_GELUS)
+PETSC_EXTERN PetscErrorCode MatFactorGetSolverPackage_seqaij_gelus(Mat,const MatSolverPackage*);
+PETSC_EXTERN PetscErrorCode MatGetFactor_seqaij_gelus(Mat,MatFactorType,Mat*);
+#endif
+
 static PetscErrorCode MatICCFactorSymbolic_SeqAIJCUSPARSE(Mat,Mat,IS,const MatFactorInfo*);
 static PetscErrorCode MatCholeskyFactorSymbolic_SeqAIJCUSPARSE(Mat,Mat,IS,const MatFactorInfo*);
 static PetscErrorCode MatCholeskyFactorNumeric_SeqAIJCUSPARSE(Mat,Mat,const MatFactorInfo*);
@@ -1862,6 +1867,7 @@ PETSC_EXTERN PetscErrorCode MatCreate_SeqAIJCUSPARSE(Mat B)
      default cusparse tri solve. Note the difference with the implementation in
      MatCreate_SeqAIJCUSP in ../seqcusp/aijcusp.cu */
   ierr = PetscObjectComposeFunction((PetscObject)B,"MatGetFactor_petsc_C",MatGetFactor_seqaij_cusparse);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)B,"MatGetFactor_cusparse_C",MatGetFactor_seqaij_cusparse);CHKERRQ(ierr);
 
   B->ops->assemblyend      = MatAssemblyEnd_SeqAIJCUSPARSE;
   B->ops->destroy          = MatDestroy_SeqAIJCUSPARSE;
@@ -1877,6 +1883,11 @@ PETSC_EXTERN PetscErrorCode MatCreate_SeqAIJCUSPARSE(Mat B)
   B->valid_GPU_matrix = PETSC_CUSP_UNALLOCATED;
 
   ierr = PetscObjectComposeFunction((PetscObject)B, "MatCUSPARSESetFormat_C", MatCUSPARSESetFormat_SeqAIJCUSPARSE);CHKERRQ(ierr);
+
+#if defined(PETSC_HAVE_GELUS)
+  ierr = PetscObjectComposeFunction((PetscObject)B,"MatGetFactor_gelus_C",MatGetFactor_seqaij_gelus);CHKERRQ(ierr);
+#endif
+
   PetscFunctionReturn(0);
 }
 

@@ -593,6 +593,19 @@
       parameter(MAT_CUSPARSE_MULT=2)
       parameter(MAT_CUSPARSE_ALL=3)
 #endif
+
+!
+!     GELUS enumerated types
+!
+#if defined(PETSC_HAVE_GELUS)
+      PetscEnum MAT_GELUS_CSR
+      PetscEnum MAT_GELUS_ELL
+      PetscEnum MAT_GELUS_HYB
+      parameter(MAT_GELUS_CSR=0)
+      parameter(MAT_GELUS_ELL=1)
+      parameter(MAT_GELUS_HYB=2)
+#endif
+
 !
 !  End of Fortran include file for the Mat package in PETSc
 !
