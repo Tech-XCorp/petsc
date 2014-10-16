@@ -2,6 +2,9 @@
 #define __CUSPMATIMPL
 
 #include <../src/vec/vec/impls/seq/seqcusp/cuspvecimpl.h>
+#if defined(PETSC_HAVE_GELUS)
+#include <../src/mat/impls/aij/seq/gelus/gelus.h>
+#endif
 
 /*for MatCreateSeqAIJCUSPFromTriple*/
 #include <cusp/coo_matrix.h>

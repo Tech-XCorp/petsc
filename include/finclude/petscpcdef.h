@@ -72,6 +72,7 @@
 #define PCBICGSTABCUSP 'bicgstabcusp'
 #define PCAINVCUSP 'ainvcusp'
 #define PCBDDC 'bddc'
+#define PCSORGELUS 'sorgelus'
 
 #define PCMGType PetscEnum
 #define PCMGCycleType PetscEnum
