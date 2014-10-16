@@ -57,6 +57,7 @@ int main(int argc,char **argv)
      To use symmetric storage, run with -dm_mat_type sbaij -mat_ignore_lower_triangular
   */
   ierr = DMSetMatType(da,MATAIJ);CHKERRQ(ierr);
+  ierr = DMSetFromOptions(da);CHKERRQ(ierr);
   ierr = DMCreateMatrix(da,&A);CHKERRQ(ierr);
 
   /*
