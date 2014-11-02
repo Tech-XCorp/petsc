@@ -1,5 +1,6 @@
 import config.package
 import os
+import sys
 
 class Configure(config.package.Package):
   def __init__(self, framework):
@@ -89,7 +90,8 @@ class Configure(config.package.Package):
 #    if self.scalartypes.scalartype == 'complex':
 #      raise RuntimeError('Must use real numbers with CUDA')
     if not config.setCompilers.Configure.isGNU(self.setCompilers.CC):
-      raise RuntimeError('Must use GNU compilers with CUDA')
+      if sys.platform != 'cygwin':
+        raise RuntimeError('Must use GNU compilers with CUDA')
     if not self.scalartypes.precision in ['double', 'single']:
       raise RuntimeError('Must use either single or double precision with CUDA')
     else:
@@ -103,7 +105,11 @@ class Configure(config.package.Package):
       else :
         # default to sm_20 because cuda 6.5 emits deprecation warning for
         # earlier architectures
-        self.cudaArch = '-arch=sm_20'
+        # win32fe nvcc however does not understand -arch flag properly, so just don't give an arch.
+        if sys.platform == 'cygwin':
+          self.cudaArch = ''
+        else:
+          self.cudaArch = '-arch=sm_20'
       if self.cudaArch:
         self.setCompilers.addCompilerFlag(self.cudaArch)
       self.setCompilers.popLanguage()
