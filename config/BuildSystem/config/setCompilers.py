@@ -3,6 +3,7 @@ import config.base
 import config
 
 import os
+import sys
 
 # not sure how to handle this with 'self' so its outside the class
 def noCheck(command, status, output, error):
@@ -639,8 +640,11 @@ class Configure(config.base.Configure):
     elif 'CUDAPP' in self.framework.argDB:
       yield self.framework.argDB['CUDAPP']
     else:
-      if hasattr(self, 'CUDAC'):
-        yield self.CUDAC+' -arch=sm_20 -E'
+      if hasattr(self, 'CUDAC'): # win32fe nvcc does not understand -arch flag properly, so just don't give an arch.
+        if sys.platform == 'cygwin':
+          yield self.CUDAC+' -E'
+        else:
+          yield self.CUDAC+' -arch=sm_20 -E'
     return
 
   def checkCUDAPreprocessor(self):
